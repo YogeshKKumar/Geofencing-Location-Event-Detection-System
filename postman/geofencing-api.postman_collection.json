@@ -1,0 +1,433 @@
+{
+  "info": {
+    "_postman_id": "c7a8b123-90d4-4f9e-a812-78d10b7eef21",
+    "name": "Geofencing & Location Event Detection API",
+    "description": "Production API Collection for Geofencing & Location Event Detection System.\nIncludes JWT Authentication, Device Management, Circular/Polygon Geofencing, Location Ingestion, Event History, and System Telemetry.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "device_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "geofence_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const responseJson = pm.response.json();",
+                  "if (responseJson.access_token) {",
+                  "    pm.collectionVariables.set('access_token', responseJson.access_token);",
+                  "    pm.environment.set('access_token', responseJson.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Register New User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"field_pilot@example.com\",\n  \"name\": \"Field Pilot\",\n  \"password\": \"PilotPass@123\",\n  \"role\": \"USER\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Devices",
+      "item": [
+        {
+          "name": "List Devices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/devices?page=1&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["devices"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "size", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Register Device",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device_identifier\": \"DEVICE-FLEET-909\",\n  \"name\": \"Logistics Patrol Van 9\",\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/devices",
+              "host": ["{{base_url}}"],
+              "path": ["devices"]
+            }
+          }
+        },
+        {
+          "name": "Get Device By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/devices/{{device_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["devices", "{{device_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Device Live State Across Geofences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/devices/{{device_id}}/state",
+              "host": ["{{base_url}}"],
+              "path": ["devices", "{{device_id}}", "state"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Geofences",
+      "item": [
+        {
+          "name": "List Geofences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/geofences?page=1&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["geofences"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "size", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Circular Geofence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"City Logistics Depot\",\n  \"description\": \"500m radial perimeter around dispatch warehouse\",\n  \"type\": \"CIRCLE\",\n  \"center_latitude\": 11.0168,\n  \"center_longitude\": 76.9558,\n  \"radius_meters\": 500,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/geofences",
+              "host": ["{{base_url}}"],
+              "path": ["geofences"]
+            }
+          }
+        },
+        {
+          "name": "Create Polygon Geofence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Secured Perimeter Zone\",\n  \"description\": \"Quadrilateral secured zone\",\n  \"type\": \"POLYGON\",\n  \"is_active\": true,\n  \"points\": [\n    {\"latitude\": 11.0150, \"longitude\": 76.9540, \"sequence_order\": 0},\n    {\"latitude\": 11.0180, \"longitude\": 76.9540, \"sequence_order\": 1},\n    {\"latitude\": 11.0180, \"longitude\": 76.9580, \"sequence_order\": 2},\n    {\"latitude\": 11.0150, \"longitude\": 76.9580, \"sequence_order\": 3}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/geofences",
+              "host": ["{{base_url}}"],
+              "path": ["geofences"]
+            }
+          }
+        },
+        {
+          "name": "Get Geofence By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/geofences/{{geofence_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["geofences", "{{geofence_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Locations & Ingestion Engine",
+      "item": [
+        {
+          "name": "Ingest GPS Fix (Trigger Detection)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device_id\": 1,\n  \"latitude\": 11.0168,\n  \"longitude\": 76.9558,\n  \"accuracy_meters\": 5.0,\n  \"timestamp\": \"2026-10-01T12:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/locations",
+              "host": ["{{base_url}}"],
+              "path": ["locations"]
+            }
+          }
+        },
+        {
+          "name": "Query Location History Trail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/locations?device_id=1&page=1&size=50",
+              "host": ["{{base_url}}"],
+              "path": ["locations"],
+              "query": [
+                { "key": "device_id", "value": "1" },
+                { "key": "page", "value": "1" },
+                { "key": "size", "value": "50" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Events History",
+      "item": [
+        {
+          "name": "Query Geofence Events (Filtered)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/events?page=1&size=20&event_type=ENTER",
+              "host": ["{{base_url}}"],
+              "path": ["events"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "size", "value": "20" },
+                { "key": "event_type", "value": "ENTER" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single Event Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/events/1",
+              "host": ["{{base_url}}"],
+              "path": ["events", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Dashboard & Analytics",
+      "item": [
+        {
+          "name": "Get System Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dashboard/summary",
+              "host": ["{{base_url}}"],
+              "path": ["dashboard", "summary"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Audit Logs",
+      "item": [
+        {
+          "name": "List Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/audit-logs?page=1&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["audit-logs"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "size", "value": "20" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
